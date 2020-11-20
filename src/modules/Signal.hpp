@@ -1,4 +1,6 @@
-#include "Frame_shared.hpp"
+#include "expanders.hpp"
+#include "myrisa.hpp"
+#include "modules/Frame/Messages.hpp"
 
 namespace myrisa {
 

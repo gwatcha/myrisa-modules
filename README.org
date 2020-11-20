@@ -129,6 +129,51 @@ in /layer/ mode. ~DELTA~ would control the feedback in this case.
 One may use ~FRAME-X~ to change the rate and offset of the delays to produce
 cool delay effects.
 
+**** Pitch Shifter
+When one sets up ~FRAME~ as a delay unit with a small layer size and adjusts
+the ~RATE~ of ~FRAME-X~, it will seem like the pitch of the sound is higher or
+lower.
+
+**** Advanced Sample & Hold / Sequencer
+When one sets ~RATE~ to 0, ~FRAME~ does not progress at all but still may record
+and read signals. In this case, it acts as an advanced sample and hold module.
+Adjusting the ~SCENE~ knob smoothly transitions between samples.
+
+One may sequence samples in interesting ways using the ~SCENE~ modulation port.
+**** Advanced 'MIDI' Looper
+When ~FRAME~ is expanding ~PLAY~, one may create interesting playback patterns
+by recording some GATE, VOCT, and VEL signals, and varying or modulating the
+~RATE~ and ~POS~ ports. One idea is to record a chord, and modulate ~RATE~ and
+~POS~ with low frequency noise sources with channel variation to create
+fluctuating, dreamy note sequences.
+**** An Instrument
+One may patch the ~RATE~ port with a VOCT signal, and the ~PLAY~ port with a
+GATE signal, patch the output VCA with a GATE controlled envelope, and play
+~FRAME~ as if it were an instrument.
+
+This use case applies to all the additional use cases below.
+
+**** Wonky Audio Playback Unit 
+One may patch the ~RATE~ port to modulate the speed of playback and recording,
+and one may patch the ~POS~ port to modulate the offset of ~FRAME~ layers.
+Using these, one could get some cool sounds with ~FRAME~ - especially if there
+is variation across channels. Have you ever wondered what playing back speech
+with a sin wave sounds like? I have.
+
+**** Wavetable Oscillator with Additive and Subtractive Synthesis Capabilities
+~FRAME~ can be a wavetable oscillator if either the ~CLK~ rate is high, or a
+high frequency saw wave is input into ~POS~.
+
+In this use case, the ~SCENE~ parameter morphs between recorded waves, and the
+~DELTA~ parameter would add or subract from a ~SCENEs~ wave.
+**** Granular Synthesis Engine Component
+To use ~FRAME~ as a granulart synthesis engine component, one would record an
+audio signal, then patch a constant polyphonic signal with channel variation
+into ~POS~.
+
+To create the grains, one would patch the ~VCA~ in ~SIGNAL~ with short, repeating
+envelopes with phase variation across channels.
+
 ** FRAME Expansion Modules
 *** SIGNAL
 ~SIGNAL~ takes an arbitrary signal as input, sends it to
@@ -176,51 +221,6 @@ in the scene.
 All the button ports react to rising edges. The ports underneath ~POS~ and
 ~RATE~ modulate the parameters.
 **** FRAME-X Usage Ideas
-***** Pitch Shifter
-When one sets up ~FRAME~ as a delay unit with a small layer size and adjusts
-the ~RATE~ of ~FRAME-X~, it will seem like the pitch of the sound is higher or
-lower.
-
-***** Advanced Sample & Hold / Sequencer
-When one sets ~RATE~ to 0, ~FRAME~ does not progress at all but still may record
-and read signals. In this case, it acts as an advanced sample and hold module.
-Adjusting the ~SCENE~ knob smoothly transitions between samples.
-
-One may sequence samples in interesting ways using the ~SCENE~ modulation port.
-***** Advanced 'MIDI' Looper
-When ~FRAME~ is expanding ~PLAY~, one may create interesting playback patterns
-by recording some GATE, VOCT, and VEL signals, and varying or modulating the
-~RATE~ and ~POS~ ports. One idea is to record a chord, and modulate ~RATE~ and
-~POS~ with low frequency noise sources with channel variation to create
-fluctuating, dreamy note sequences.
-***** An Instrument
-One may patch the ~RATE~ port with a VOCT signal, and the ~PLAY~ port with a
-GATE signal, patch the output VCA with a GATE controlled envelope, and play
-~FRAME~ as if it were an instrument.
-
-This use case applies to all the additional use cases below.
-
-***** Wonky Audio Playback Unit 
-One may patch the ~RATE~ port to modulate the speed of playback and recording,
-and one may patch the ~POS~ port to modulate the offset of ~FRAME~ layers.
-Using these, one could get some cool sounds with ~FRAME~ - especially if there
-is variation across channels. Have you ever wondered what playing back speech
-with a sin wave sounds like? I have.
-
-***** Wavetable Oscillator with Additive and Subtractive Synthesis Capabilities
-~FRAME~ can be a wavetable oscillator if either the ~CLK~ rate is high, or a
-high frequency saw wave is input into ~POS~.
-
-In this use case, the ~SCENE~ parameter morphs between recorded waves, and the
-~DELTA~ parameter would add or subract from a ~SCENEs~ wave.
-***** Granular Synthesis Engine Component
-To use ~FRAME~ as a granulart synthesis engine component, one would record an
-audio signal, then patch a constant polyphonic signal with channel variation
-into ~POS~.
-
-To create the grains, one would patch the ~VCA~ in ~SIGNAL~ with short, repeating
-envelopes with phase variation across channels.
-
 ** TIMELINE
 Recall how ~FRAME~ keeps track of it's state before and after a recording starts.
 The ~TIMELINE~ module is essentially a sequencer for all ~FRAME~ module states. One

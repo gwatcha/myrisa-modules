@@ -3,19 +3,25 @@
 #include <tuple>
 #include <vector>
 
-#include "../assert.hpp"
 #include "Layer.hpp"
 #include "PhaseOscillator.hpp"
-#include "Frame_shared.hpp"
+#include "definitions.hpp"
+
+#include "assert.hpp"
+#include "modules/Frame/Messages.hpp"
 
 #include "rack.hpp"
 #include <assert.h>
 
 using namespace std;
+using namespace myrisa;
 
 namespace myrisa {
 
-struct Section {
+class Section {
+public:
+  int division = 0;
+  float phase = 0.0f;
 
 private:
   vector<Layer*> _layers;
@@ -37,16 +43,19 @@ private:
 
   float _attenuation = 0.0f;
 
-  inline void newLayer(RecordMode layer_mode);
-  inline void startNewLayer();
-  inline void finishNewLayer();
-  inline float getLayerAttenuation(int layer_i);
-  inline void advance();
+  RecordMode _record_mode = RecordMode::READ;
+
+  void newLayer(RecordMode layer_mode);
+  void startNewLayer();
+  void finishNewLayer();
+  float getLayerAttenuation(int layer_i);
+  void advance();
 
 public:
   Section() {
     _ext_phase_freq_calculator.setDivision(20000);
   }
+
   virtual ~Section() {
     for (auto layer : _layers) {
       delete layer;
@@ -57,11 +66,8 @@ public:
     }
   }
 
-  int division = 0;
-  float phase = 0.0f;
-  RecordMode mode = RecordMode::READ;
-
-  void setRecordMode(RecordMode new_mode);
+  void setMode(RecordMode new_mode);
+  RecordMode getMode();
   bool isEmpty();
   void undo();
   float read();

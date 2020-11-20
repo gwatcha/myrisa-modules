@@ -3,7 +3,7 @@
 using namespace myrisa;
 
 // FIXME performance
-inline float Section::getLayerAttenuation(int layer_i) {
+float Section::getLayerAttenuation(int layer_i) {
   float layer_attenuation = 0.0f;
   if (_active_layer) {
     for (auto target_layer : _active_layer->target_layers) {
@@ -45,7 +45,7 @@ float Section::read() {
   return out;
 }
 
-inline void Section::advance() {
+void Section::advance() {
   float prev_phase = phase;
 
   if (_use_ext_phase) {
@@ -127,11 +127,11 @@ void Section::step(float in, float attenuation, float sample_time, bool use_ext_
   _ext_phase = ext_phase;
   _sample_time = sample_time;
 
-  if (mode != RecordMode::READ) {
+  if (_record_mode != RecordMode::READ) {
     assert(_active_layer != NULL);
   }
 
-  if (mode == RecordMode::DUB && (_active_layer->start_division + _active_layer->n_divisions == division)) {
+  if (_record_mode == RecordMode::DUB && (_active_layer->start_division + _active_layer->n_divisions == division)) {
     printf("END recording via overdub\n");
     printf("-- start div: %d, length: %d\n", _active_layer->start_division, _active_layer->n_divisions);
     _layers.push_back(_active_layer);
@@ -141,22 +141,30 @@ void Section::step(float in, float attenuation, float sample_time, bool use_ext_
     newLayer(RecordMode::DUB);
   }
 
-  if (mode != RecordMode::READ) {
+  if (_record_mode != RecordMode::READ) {
     _active_layer->write(division, phase, in, _attenuation);
   }
 
   advance();
 }
 
+RecordMode Section::getMode() {
+  return _record_mode;
+}
 
-void Section::setRecordMode(RecordMode new_mode) {
-  if (mode != RecordMode::READ && new_mode == RecordMode::READ) {
+void Section::setMode(RecordMode new_mode) {
+  if (isEmpty() && !_use_ext_phase) {
+    // TODO FIXME
+    new_mode = RecordMode::DEFINE_DIVISION_LENGTH;
+  }
+
+  if (_record_mode != RecordMode::READ && new_mode == RecordMode::READ) {
     assert(_active_layer != NULL);
     if (_active_layer->mode == RecordMode::DEFINE_DIVISION_LENGTH) {
-      _phase_oscillator.setPitch(1 / (_active_layer->samples_per_division * _sample_time));
+      _phase_oscillator.setFreq(1 / (_active_layer->samples_per_division * _sample_time));
       _phase_defined = true;
-      printf("phase defined with pitch %f, s/div %d, s_time %f\n", _phase_oscillator.freq, _active_layer->samples_per_division, _sample_time);
-      _division_time_s = 1 / _phase_oscillator.freq;
+      printf("phase defined with pitch %f, s/div %d, s_time %f\n", _phase_oscillator.getFreq(), _active_layer->samples_per_division, _sample_time);
+      _division_time_s = 1 / _phase_oscillator.getFreq();
     }
 
     _layers.push_back(_active_layer);
@@ -167,11 +175,11 @@ void Section::setRecordMode(RecordMode new_mode) {
     _active_layer = NULL;
   }
 
-  if (mode == RecordMode::READ && new_mode != RecordMode::READ) {
+  if (_record_mode == RecordMode::READ && new_mode != RecordMode::READ) {
     newLayer(new_mode);
   }
 
-  mode = new_mode;
+  _record_mode = new_mode;
 }
 
 bool Section::isEmpty() { return (_layers.size() == 0); }

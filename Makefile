@@ -11,7 +11,9 @@ CXXFLAGS += -Isrc -Isrc/components
 LDFLAGS +=
 
 # Add .cpp files to the build
-SOURCES += $(wildcard src/*cpp) $(wildcard src/components/*cpp)
+SOURCES += $(wildcard src/*cpp)
+SOURCES += $(wildcard src/modules/*cpp)
+SOURCES += $(wildcard src/modules/Frame/*cpp) $(wildcard src/modules/Frame/engine/*cpp)
 
 # Add files to the ZIP package when running `make dist`
 # The compiled plugin and "plugin.json" are automatically added.

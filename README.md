@@ -1,28 +1,28 @@
 
 # Table of Contents
 
-1.  [Modules For Structure](#org84959db)
-    1.  [FRAME](#org85d0cba)
-        1.  [Scene Selection](#orgea803b5)
-        2.  [Recording with FRAME](#orgd3c2304)
-        3.  [Layer Attenuation](#orge8bf87a)
-        4.  [Button Behaviour](#orgeb0d429)
-        5.  [FRAME Additional Uses Cases](#org553d53b)
-    2.  [FRAME Expansion Modules](#org291c177)
-        1.  [SIGNAL](#org456bc5f)
-        2.  [4SIGNAL](#org2de341a)
-        3.  [PLAY](#org8b0c698)
-        4.  [FRAME-X](#org792a3b4)
-    3.  [TIMELINE](#org7b1d09d)
-2.  [Modules for a Sound Interface](#orgdfe4390)
-    1.  [MACRO](#orgc33c75b)
-    2.  [M-PARAM](#org6fc29b8)
-    3.  [M-OUT](#orga32c19c)
-    4.  [M-IN](#orgad2a709)
-    5.  [INTERFACE](#orgf7c18a6)
+1.  [Modules For Structure](#orge76f2b7)
+    1.  [FRAME](#org6deb9c2)
+        1.  [Scene Selection](#orge2a92b7)
+        2.  [Recording with FRAME](#org5fdf6c2)
+        3.  [Layer Attenuation](#org09789a6)
+        4.  [Button Behaviour](#org28155a3)
+        5.  [FRAME Additional Uses Cases](#orge0c172e)
+    2.  [FRAME Expansion Modules](#orge0b7e2f)
+        1.  [SIGNAL](#orgc8fb59c)
+        2.  [4SIGNAL](#org52fed77)
+        3.  [PLAY](#org7b0c8e7)
+        4.  [FRAME-X](#org9c55d35)
+    3.  [TIMELINE](#org3314962)
+2.  [Modules for a Sound Interface](#orgd69b46b)
+    1.  [MACRO](#org31bf719)
+    2.  [M-PARAM](#orgb1ca8fb)
+    3.  [M-OUT](#org41ccb8a)
+    4.  [M-IN](#orgdf4d5c3)
+    5.  [INTERFACE](#org61fe5ca)
 
 
-<a id="org84959db"></a>
+<a id="orge76f2b7"></a>
 
 # Modules For Structure
 
@@ -38,7 +38,7 @@ and sequence parameter automation, or as a keyframer.
 ![img](img/structure_modules.png)
 
 
-<a id="org85d0cba"></a>
+<a id="org6deb9c2"></a>
 
 ## FRAME
 
@@ -58,7 +58,7 @@ ports.  It enables more creative ways to use `FRAME`.
 `FRAME` supports [polyphonic](https://vcvrack.com/manual/Polyphony) input.
 
 
-<a id="orgea803b5"></a>
+<a id="orge2a92b7"></a>
 
 ### Scene Selection
 
@@ -66,6 +66,15 @@ A scene is simply a collection of looping buffers, or, in frame's terminology, a
 collection of 'layers'.
 
 The `SCENE` parameter adjusts which scene `FRAME` records and reads from.
+
+If `SCENE`'s position is between two scenes, the behaviour will depend on the
+"scene transition" option. 
+
+-   If set to  'smooth' it will output a weighted mix of both scenes, allowing for smooth crossfading between scenes.
+-   If set to 'discrete', the scene will snap to the nearest scene.
+-   If  set to 'sequence', the scene will snap to the nearest scene at the next
+    clk step, and will also reset the play position of the scene on transitioning.
+
 The port directly under `SCENE` modulates the parameter, allowing for
 interesting crossfade patterns, or voltage controlled scene sequencing.
 
@@ -78,7 +87,7 @@ that one may return to, or to just start developing a new scene by altering the
 current one.
 
 
-<a id="orgd3c2304"></a>
+<a id="org5fdf6c2"></a>
 
 ### Recording with FRAME
 
@@ -133,7 +142,7 @@ The record and delta modes create four recording behaviours when combined.
     Used for continuously overdubbing a layer.
 
 
-<a id="orge8bf87a"></a>
+<a id="org09789a6"></a>
 
 ### Layer Attenuation
 
@@ -153,7 +162,7 @@ signal, it creates attenuation envelopes and when fully turned, erases parts of
 previous layers.
 
 
-<a id="orgeb0d429"></a>
+<a id="org28155a3"></a>
 
 ### Button Behaviour
 
@@ -168,7 +177,7 @@ The `PREV` and `NEXT` buttons change the active layer, and the `PLAY` button
 resets all layer positions to the beginning.
 
 
-<a id="org553d53b"></a>
+<a id="orge0c172e"></a>
 
 ### FRAME Additional Uses Cases
 
@@ -180,13 +189,68 @@ resets all layer positions to the beginning.
     One may use `FRAME-X` to change the rate and offset of the delays to produce
     cool delay effects.
 
+2.  Pitch Shifter
 
-<a id="org291c177"></a>
+    When one sets up `FRAME` as a delay unit with a small layer size and adjusts
+    the `RATE` of `FRAME-X`, it will seem like the pitch of the sound is higher or
+    lower.
+
+3.  Advanced Sample & Hold / Sequencer
+
+    When one sets `RATE` to 0, `FRAME` does not progress at all but still may record
+    and read signals. In this case, it acts as an advanced sample and hold module.
+    Adjusting the `SCENE` knob smoothly transitions between samples.
+    
+    One may sequence samples in interesting ways using the `SCENE` modulation port.
+
+4.  Advanced 'MIDI' Looper
+
+    When `FRAME` is expanding `PLAY`, one may create interesting playback patterns
+    by recording some GATE, VOCT, and VEL signals, and varying or modulating the
+    `RATE` and `POS` ports. One idea is to record a chord, and modulate `RATE` and
+    `POS` with low frequency noise sources with channel variation to create
+    fluctuating, dreamy note sequences.
+
+5.  An Instrument
+
+    One may patch the `RATE` port with a VOCT signal, and the `PLAY` port with a
+    GATE signal, patch the output VCA with a GATE controlled envelope, and play
+    `FRAME` as if it were an instrument.
+    
+    This use case applies to all the additional use cases below.
+
+6.  Wonky Audio Playback Unit
+
+    One may patch the `RATE` port to modulate the speed of playback and recording,
+    and one may patch the `POS` port to modulate the offset of `FRAME` layers.
+    Using these, one could get some cool sounds with `FRAME` - especially if there
+    is variation across channels. Have you ever wondered what playing back speech
+    with a sin wave sounds like? I have.
+
+7.  Wavetable Oscillator with Additive and Subtractive Synthesis Capabilities
+
+    `FRAME` can be a wavetable oscillator if either the `CLK` rate is high, or a
+    high frequency saw wave is input into `POS`.
+    
+    In this use case, the `SCENE` parameter morphs between recorded waves, and the
+    `DELTA` parameter would add or subract from a `SCENEs` wave.
+
+8.  Granular Synthesis Engine Component
+
+    To use `FRAME` as a granulart synthesis engine component, one would record an
+    audio signal, then patch a constant polyphonic signal with channel variation
+    into `POS`.
+    
+    To create the grains, one would patch the `VCA` in `SIGNAL` with short, repeating
+    envelopes with phase variation across channels.
+
+
+<a id="orge0b7e2f"></a>
 
 ## FRAME Expansion Modules
 
 
-<a id="org456bc5f"></a>
+<a id="orgc8fb59c"></a>
 
 ### SIGNAL
 
@@ -213,7 +277,7 @@ layer by engaging recording in *layer* mode.
     A VCA for the output. Used for setting or modulating the output volume.
 
 
-<a id="org2de341a"></a>
+<a id="org52fed77"></a>
 
 ### 4SIGNAL
 
@@ -222,7 +286,7 @@ multiple signals, as it saves space compared to 4 `SIGNAL` modules set side by
 side.
 
 
-<a id="org8b0c698"></a>
+<a id="org7b0c8e7"></a>
 
 ### PLAY
 
@@ -234,7 +298,7 @@ Attenuation only affects VEL (velocity) signals until max attenuation, where it
 also removes GATE signals and holds VOCT signals.
 
 
-<a id="org792a3b4"></a>
+<a id="org9c55d35"></a>
 
 ### FRAME-X
 
@@ -242,7 +306,7 @@ This module is an expander for `FRAME`. When placed on its right side, it gives
 it extra `RATE`, and `POS` parameters, as well as ports for controlling `PREV`,
 `NEXT`, and `PLAY`.
 
-This module enables more ways to use `FRAME`.
+This module enables more ways to use `FRAME`, checkout the footnotes section if interested.
 
 The `POS` parameter controls the start offset of the layers in the scene.
 
@@ -254,63 +318,8 @@ All the button ports react to rising edges. The ports underneath `POS` and
 
 1.  FRAME-X Usage Ideas
 
-    1.  Pitch Shifter
-    
-        When one sets up `FRAME` as a delay unit with a small layer size and adjusts
-        the `RATE` of `FRAME-X`, it will seem like the pitch of the sound is higher or
-        lower.
-    
-    2.  Advanced Sample & Hold / Sequencer
-    
-        When one sets `RATE` to 0, `FRAME` does not progress at all but still may record
-        and read signals. In this case, it acts as an advanced sample and hold module.
-        Adjusting the `SCENE` knob smoothly transitions between samples.
-        
-        One may sequence samples in interesting ways using the `SCENE` modulation port.
-    
-    3.  Advanced 'MIDI' Looper
-    
-        When `FRAME` is expanding `PLAY`, one may create interesting playback patterns
-        by recording some GATE, VOCT, and VEL signals, and varying or modulating the
-        `RATE` and `POS` ports. One idea is to record a chord, and modulate `RATE` and
-        `POS` with low frequency noise sources with channel variation to create
-        fluctuating, dreamy note sequences.
-    
-    4.  An Instrument
-    
-        One may patch the `RATE` port with a VOCT signal, and the `PLAY` port with a
-        GATE signal, patch the output VCA with a GATE controlled envelope, and play
-        `FRAME` as if it were an instrument.
-        
-        This use case applies to all the additional use cases below.
-    
-    5.  Wonky Audio Playback Unit
-    
-        One may patch the `RATE` port to modulate the speed of playback and recording,
-        and one may patch the `POS` port to modulate the offset of `FRAME` layers.
-        Using these, one could get some cool sounds with `FRAME` - especially if there
-        is variation across channels. Have you ever wondered what playing back speech
-        with a sin wave sounds like? I have.
-    
-    6.  Wavetable Oscillator with Additive and Subtractive Synthesis Capabilities
-    
-        `FRAME` can be a wavetable oscillator if either the `CLK` rate is high, or a
-        high frequency saw wave is input into `POS`.
-        
-        In this use case, the `SCENE` parameter morphs between recorded waves, and the
-        `DELTA` parameter would add or subract from a `SCENEs` wave.
-    
-    7.  Granular Synthesis Engine Component
-    
-        To use `FRAME` as a granulart synthesis engine component, one would record an
-        audio signal, then patch a constant polyphonic signal with channel variation
-        into `POS`.
-        
-        To create the grains, one would patch the `VCA` in `SIGNAL` with short, repeating
-        envelopes with phase variation across channels.
 
-
-<a id="org7b1d09d"></a>
+<a id="org3314962"></a>
 
 ## TIMELINE
 
@@ -324,14 +333,14 @@ position of all `FRAME`'s so to preserve deterministic playback.
 TODO
 
 
-<a id="orgdfe4390"></a>
+<a id="orgd69b46b"></a>
 
 # Modules for a Sound Interface
 
 These modules are for the [sound interface](https://github.com/gwatcha/sound-interface).
 
 
-<a id="orgc33c75b"></a>
+<a id="org31bf719"></a>
 
 ## MACRO
 
@@ -343,7 +352,7 @@ User can enter a name for the macro, and save to file similar
 to stoermelders `STRIP`. The user can also use it to load macro files. 
 
 
-<a id="org6fc29b8"></a>
+<a id="orgb1ca8fb"></a>
 
 ## M-PARAM
 
@@ -355,7 +364,7 @@ These mappings define the parameters of a macro.
 Placed on the left side of a strip of modules.
 
 
-<a id="orga32c19c"></a>
+<a id="org41ccb8a"></a>
 
 ## M-OUT
 
@@ -370,7 +379,7 @@ These ports define the output of the macro. they can be routed via OSC to any
 Placed on the right side of a strip of modules.
 
 
-<a id="orgad2a709"></a>
+<a id="orgdf4d5c3"></a>
 
 ## M-IN
 
@@ -381,7 +390,7 @@ These ports define the inputs for a macro. The signal on them can come from any 
 Placed on the left side of a strip of modules.
 
 
-<a id="orgf7c18a6"></a>
+<a id="org61fe5ca"></a>
 
 ## INTERFACE
 
