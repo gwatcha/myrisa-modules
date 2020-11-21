@@ -3,7 +3,13 @@
 using namespace myrisa;
 
 Section* FrameEngine::getActiveSection() {
-  return _sections[round(_section_position)];
+  unsigned int active_section_i = round(_section_position);
+  Section *active_section = _sections[active_section_i];
+  if (!active_section) {
+    active_section = new Section();
+    _sections[active_section_i] = active_section;
+  }
+  return active_section;
 }
 
 void FrameEngine::setMode(RecordMode mode) {
@@ -13,26 +19,19 @@ void FrameEngine::setMode(RecordMode mode) {
     _recording_section->setMode(RecordMode::READ);
   } else {
     _recording = true;
-    _recording_section = getActiveSection();
-    _recording_section->setMode(RecordMode::DEFINE_DIVISION_LENGTH);
-    _recording_section->setMode(mode);
+    if (_recording_section->isEmpty() && !use_ext_phase) {
+      _recording_section->setMode(RecordMode::DEFINE_DIVISION_LENGTH);
+    } else  {
+      _recording_section->setMode(mode);
+    }
   }
 }
 
 void FrameEngine::setSectionPosition(float section_position) {
   _section_position = section_position;
-  unsigned int active_section_i = round(_section_position);
+  Section *active_section = getActiveSection();
 
-  if (_sections.size() <= active_section_i) {
-    _sections.resize(active_section_i + 1);
-  }
-
-  Section *active_section = _sections[active_section_i];
-  if (!active_section) {
-    active_section = new Section();
-    _sections[active_section_i] = active_section;
-  }
-
+  // this allows for quickly finishing recording, switching to a new section, and starting recording
   if (_recording && _recording_section != active_section) {
     RecordMode record_mode = _recording_section->getMode();
     _recording_section->setMode(RecordMode::READ);
@@ -41,13 +40,20 @@ void FrameEngine::setSectionPosition(float section_position) {
   }
 }
 
-float FrameEngine::step(float in, float sample_time) {
+float FrameEngine::step() {
   ASSERT(attenuation, <=, 1.0f);
   ASSERT(0.0f, <=, attenuation);
 
   for (auto section : _sections) {
     if (section) {
-      section->step(in, attenuation, sample_time, use_ext_phase, ext_phase);
+      // TODO is this a good way to do things?
+      // answer: nested classes
+      section->use_ext_phase = use_ext_phase;
+      section->ext_phase = ext_phase;
+      section->attenuation = attenuation;
+      section->sample_time = sample_time;
+      section->in = in;
+      section->step();
     }
   }
 
@@ -64,7 +70,7 @@ float FrameEngine::read() {
     out += _sections[section_1]->read() * (1 - weight);
   }
 
-  if (_sections[section_2] && section_1 != section_2 && section_2 < _sections.size()) {
+  if (_sections[section_2] && section_1 != section_2 && section_2 < _numSections) {
     out += _sections[section_2]->read() * (weight);
   }
 

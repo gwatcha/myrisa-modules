@@ -38,6 +38,7 @@ void Frame::modulateChannel(int c) {
   if (inputs[DELTA_INPUT].isConnected()) {
     delta *= clamp(inputs[DELTA_INPUT].getPolyVoltage(c) / 10.0f, 0.0f, 1.0f);
   }
+
   if (delta > 0.50f + _recordThreshold) {
     e.setMode(RecordMode::EXTEND);
   } else if (delta < 0.50f - _recordThreshold) {
@@ -74,21 +75,22 @@ void Frame::processChannel(const ProcessArgs& args, int c) {
   FrameEngine &e = *_engines[c];
 
   if (inputs[CLK_INPUT].isConnected()) {
-    float ext_phase = clamp(inputs[CLK_INPUT].getPolyVoltage(c) / 10, 0.0f, 1.0f);
+    e.ext_phase = clamp(inputs[CLK_INPUT].getPolyVoltage(c) / 10, 0.0f, 1.0f);
     e.use_ext_phase = true;
-    e.ext_phase = ext_phase;
   } else {
     e.use_ext_phase = false;
   }
 
-  float in = _fromSignal->signal[c];
-  _toSignal->signal[c] = e.step(in, _sampleTime);
+  e.sample_time = _sampleTime;
+
+  e.in = _fromSignal->signal[c];
+  _toSignal->signal[c] = e.step();
 }
 
 void Frame::updateLights(const ProcessArgs &args) {
   FrameEngine &e = *_engines[0];
   Section* active_section = e.getActiveSection();
-  float phase = active_section->phase;
+  float phase = active_section->getPhase();
 
   lights[PHASE_LIGHT + 1].setSmoothBrightness(phase, _sampleTime * light_divider.getDivision());
 

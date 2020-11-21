@@ -21,9 +21,16 @@ namespace myrisa {
 class Section {
 public:
   int division = 0;
-  float phase = 0.0f;
+  bool use_ext_phase = false;
+  float ext_phase = 0.0f;
+  float sample_time = 1.0f;
+  float attenuation = 0.0f;
+  // TODO vector
+  float in = 0.0f;
 
 private:
+  float _phase = 0.0f;
+
   vector<Layer*> _layers;
   vector<Layer*> _selected_layers;
 
@@ -32,16 +39,12 @@ private:
   PhaseOscillator _phase_oscillator;
   bool _phase_defined = false;
 
-  float _sample_time = 1.0f;
+  float _prev_phase = 0.0f;
 
   rack::dsp::ClockDivider _ext_phase_freq_calculator;
   float _freq_calculator_last_capture_phase_distance = 0.0f;
 
-  bool _use_ext_phase = false;
-  float _ext_phase = 0.0f;
   float _division_time_s = 0.0f;
-
-  float _attenuation = 0.0f;
 
   RecordMode _record_mode = RecordMode::READ;
 
@@ -66,11 +69,12 @@ public:
     }
   }
 
+  float getPhase();
   void setMode(RecordMode new_mode);
   RecordMode getMode();
   bool isEmpty();
   void undo();
   float read();
-  void step(float in, float attenuation_power, float sample_time, bool use_ext_phase, float ext_phase);
+  void step();
 };
 } // namespace myrisa

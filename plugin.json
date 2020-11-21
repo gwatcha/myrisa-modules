@@ -36,14 +36,6 @@
       ]
     },
     {
-      "slug": "Myrisa-FrameX",
-      "name": "FrameX",
-      "description": "Frame expander which adds additional position and rate controls, as well as control ports. Enables alternative ways to use Frame.",
-      "tags": [
-        "Expander"
-      ]
-    },
-    {
       "slug": "Myrisa-Signal",
       "name": "Signal",
       "description": "Record, loop, edit, playback, and sequence signals.",

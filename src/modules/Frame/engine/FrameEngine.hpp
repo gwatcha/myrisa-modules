@@ -7,14 +7,17 @@ namespace myrisa {
 
 class FrameEngine {
 public:
-  float attenuation;
-  bool use_ext_phase = false;
+  float in = 0.0f;
+  float attenuation = 0.0f;
+  float sample_time = 1.0f;
   float ext_phase = 0.0f;
+  float use_ext_phase = false;
 
 private:
+  static const int _numSections = 16;
   bool _recording = false;
   Section *_recording_section = NULL;
-  vector<Section*> _sections;
+  Section* _sections[_numSections];
   float _section_position = 0.0f;
 
 public:
@@ -26,11 +29,10 @@ public:
 
   void startRecording();
   void endRecording();
-  float step(float in, float sample_time);
+  float step();
 
   Section* getActiveSection();
   void setSectionPosition(float section_position);
-  void setUseExtPhase(bool use_ext_phase);
   void setMode(RecordMode mode);
 
 private:
