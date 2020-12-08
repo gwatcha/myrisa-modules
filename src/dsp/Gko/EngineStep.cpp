@@ -62,7 +62,19 @@ inline void Engine::beginRecording() {
     // start_beat = _timeline_position.beat + std::round(_timeline_position.phase);
   // }
 
+
+  std::vector<unsigned int> target_layers_idx;
+  for (auto selected_layer_i : _selected_layers_idx) {
+    TimelinePosition fully_attenuated_position = _timeline.layers[selected_layer_i]->fully_attenuated_position;
+    if (_timeline_position.before(fully_attenuated_position)) {
+      target_layers_idx.push_back(selected_layer_i);
+    }
+  }
+
   _recording_layer = new Layer(start_beat, n_beats, _selected_layers_idx);
+  for (auto target_layer_id : _selected_layers_idx) {
+    _timeline.layers[target_layer_id]->attenuation_layers.push_back(_recording_layer);
+  }
 
   if (phaseDefined()) {
     if (_use_ext_phase) {
@@ -101,6 +113,14 @@ inline void Engine::handlePhaseFlip(PhaseAnalyzer::PhaseFlip flip) {
         _recording_layer->n_beats = _recording_layer->n_beats + 1;
         printf("extend recording to: %d\n", _recording_layer->n_beats);
         _recording_layer->resizeToLength();
+      }
+    }
+  }
+
+  if (flip == PhaseAnalyzer::PhaseFlip::FORWARD) {
+    for (auto layer: _timeline.layers) {
+      if (_timeline_position.before(layer->fully_attenuated_position)) {
+        layer->tryUpdateFullyAttenuatedPosition(_timeline_position);
       }
     }
   }

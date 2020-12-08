@@ -7,6 +7,10 @@ enum TimeFrame { TIMELINE, SELECTED_LAYERS, ACTIVE_LAYER };
 struct TimelinePosition {
   unsigned int beat = 0;
   double phase = 0.f;
+
+  inline bool before(TimelinePosition timeline_position) {
+    return (beat < timeline_position.beat || (beat == timeline_position.beat && phase < timeline_position.phase));
+  }
 };
 
 /**

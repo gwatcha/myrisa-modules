@@ -68,21 +68,19 @@ struct Recording {
       assert(0.f <= sample);
     }
 
-    if (write_divider.process()) {
-      int length = buffer.size();
-      float position = length * phase;
-      int i = floor(position) == length ? length - 1 : floor(position);
+    int length = buffer.size();
+    float position = length * phase;
+    int i = floor(position) == length ? length - 1 : floor(position);
 
-      // TODO different more sophisticated ways to write?
-      // FIXME explodes if in oscillator mode
-      if (type == Type::AUDIO)  {
-        int i2 = ceil(position) == length ? 0 : ceil(position);
-        float w = position - i;
-        buffer[i] += sample * (1 - w);
-        buffer[i2] += sample * (w);
-      } else {
-        buffer[i] = sample;
-      }
+    // TODO different more sophisticated ways to write?
+    // FIXME explodes if in oscillator mode
+    if (type == Type::AUDIO)  {
+      int i2 = ceil(position) == length ? 0 : ceil(position);
+      float w = position - i;
+      buffer[i] += sample * (1 - w);
+      buffer[i2] += sample * (w);
+    } else {
+      buffer[i] = sample;
     }
   }
 
@@ -134,7 +132,7 @@ struct Recording {
     }
 
     if (type == Type::AUDIO) {
-      float interpolated_sample = interpolateHermite(buffer.data(), buffer_position, buffer.size());
+      float interpolated_sample = interpolateBSpline(buffer.data(), buffer_position, buffer.size());
       return crossfadeSample(interpolated_sample, phase);
     } else if (type == Type::CV) {
       return interpolateLineard(buffer.data(), buffer_position, buffer.size());

@@ -21,9 +21,16 @@ struct Layer {
 
   Recording *in;
   Recording *recording_strength;
+
   std::vector<unsigned int> target_layers_idx;
 
+  std::vector<Layer*> attenuation_layers;
+  // unsigned int fully_attenuated_beat = 0;
+
   int samples_per_beat = 0;
+
+  TimelinePosition last_content_position;
+  TimelinePosition fully_attenuated_position;
 
   // TODO optinoal samples_per_beat?
   inline Layer(unsigned int start_beat, unsigned int n_beats, std::vector<unsigned int> target_layers_idx) {
@@ -31,6 +38,7 @@ struct Layer {
     this->n_beats = n_beats;
     this->target_layers_idx = target_layers_idx;
 
+    fully_attenuated_position.beat = std::numeric_limits<unsigned int>::max();
     in = new Recording(Recording::Type::AUDIO);
     recording_strength = new Recording(Recording::Type::PARAM);
   }
@@ -38,6 +46,29 @@ struct Layer {
   inline ~Layer() {
     delete in;
     delete recording_strength;
+  }
+
+  // FIXME won't work if timeline looping
+  inline void tryUpdateFullyAttenuatedPosition(TimelinePosition position) {
+    if (attenuation_layers.size() == 0) {
+      return;
+    }
+
+    unsigned int max_attenuation_layers_beats = 0;
+    for (auto attenuation_layer : attenuation_layers) {
+      if (attenuation_layer->loop && max_attenuation_layers_beats < attenuation_layer->n_beats) {
+        max_attenuation_layers_beats = attenuation_layer->n_beats;
+      }
+    }
+
+    if (position.beat < last_content_position.beat) {
+      return;
+    }
+
+    if (max_attenuation_layers_beats < (position.beat - last_content_position.beat)) {
+      fully_attenuated_position = position;
+      printf("fully attenuated\n");
+    }
   }
 
   inline void pushBack(float signal_sample, float recording_strength_sample) {
@@ -72,11 +103,20 @@ struct Layer {
   }
 
   inline float readSignal(TimelinePosition position) {
-    if (!readableAtPosition(position)) {
+    if (fully_attenuated_position.before(position) || !readableAtPosition(position)) {
       return 0.f;
     }
 
-    return in->read(positionToRecordingPhase(position));
+    float attenuation = 0.f;
+    for (auto layer : attenuation_layers) {
+      attenuation += layer->readRecordingStrength(position);
+      if (1.0f <= attenuation) {
+        return 0.f;
+      }
+    }
+
+    last_content_position = position;
+    return in->read(positionToRecordingPhase(position)) * (1.0f - attenuation);
   }
 
   inline float readRecordingStrength(TimelinePosition position) {
