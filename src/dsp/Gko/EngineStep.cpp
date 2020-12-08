@@ -14,10 +14,19 @@ inline void Engine::write() {
   if (!phaseDefined()) {
     _recording_layer->pushBack(_record_params.in, _record_params.strength);
     _recording_layer->samples_per_beat++;
-  } else if (_recording_layer->writableAtPosition(_timeline_position)) {
-    _recording_layer->write(_timeline_position, _record_params.in, _record_params.strength);
+
+    // TODO ?
+    _timeline.rendered_timeline->pushBack(_record_params.in, 0.f);
+    _timeline.rendered_timeline->samples_per_beat++;
+
   } else {
-    printf("Not writable \n");
+    assert(_recording_layer->writableAtPosition(_timeline_position));
+    _recording_layer->writeSignal(_timeline_position, _record_params.in);
+    _recording_layer->writeRecordingStrength(_timeline_position, _record_params.strength);
+
+    if (_timeline_position.before(_timeline.render_head)) {
+      _timeline.render_head = _timeline_position;
+    }
   }
 }
 
@@ -39,6 +48,8 @@ inline void Engine::endRecording() {
         _phase_oscillator.setFrequency(1 / recording_time);
       }
       printf("-- phase oscillator set with frequency: %f, sample time is: %f\n", _phase_oscillator.getFrequency(), _sample_time);
+      _timeline.render_head.beat = 1;
+      _timeline.render_head.phase = 0.0f;
     }
 
     _timeline.layers.push_back(_recording_layer);
@@ -51,17 +62,16 @@ inline void Engine::beginRecording() {
   assert(_record_params.active());
   assert(_recording_layer == nullptr);
 
+  if (_timeline.rendered_timeline == nullptr) {
+    _timeline.rendered_timeline = new Layer(0, 1, std::vector<unsigned int>(), _sample_time);
+  }
+
   unsigned int n_beats = 1;
   if (_record_params.mode == RecordParams::Mode::DUB && 0 < _selected_layers_idx.size()) {
     n_beats = _timeline.getNumberOfBeatsOfLayerSelection(_selected_layers_idx);
   }
 
   unsigned int start_beat = _timeline_position.beat;
-  // TODO
-  // if (_record_params.mode == RecordParams::Mode::EXTEND) {
-    // start_beat = _timeline_position.beat + std::round(_timeline_position.phase);
-  // }
-
 
   std::vector<unsigned int> target_layers_idx;
   for (auto selected_layer_i : _selected_layers_idx) {
@@ -71,7 +81,7 @@ inline void Engine::beginRecording() {
     }
   }
 
-  _recording_layer = new Layer(start_beat, n_beats, _selected_layers_idx);
+  _recording_layer = new Layer(start_beat, n_beats, _selected_layers_idx, _sample_time);
   for (auto target_layer_id : _selected_layers_idx) {
     _timeline.layers[target_layer_id]->attenuation_layers.push_back(_recording_layer);
   }
@@ -110,7 +120,7 @@ inline void Engine::handlePhaseFlip(PhaseAnalyzer::PhaseFlip flip) {
         endRecording();
         beginRecording();
       } else if (_record_params.mode == RecordParams::Mode::EXTEND) {
-        _recording_layer->n_beats = _recording_layer->n_beats + 1;
+        _recording_layer->n_beats++;
         printf("extend recording to: %d\n", _recording_layer->n_beats);
         _recording_layer->resizeToLength();
       }
@@ -135,6 +145,10 @@ inline PhaseAnalyzer::PhaseFlip Engine::advanceTimelinePosition() {
     _timeline_position.beat--;
   } else if (phase_flip == PhaseAnalyzer::PhaseFlip::FORWARD) {
     _timeline_position.beat++;
+  }
+
+  if (phaseDefined() && 0 < _timeline.layers.size() && _timeline.render_head.before(_timeline_position)) {
+    _timeline.renderUpTo(_timeline_position);
   }
 
   return phase_flip;

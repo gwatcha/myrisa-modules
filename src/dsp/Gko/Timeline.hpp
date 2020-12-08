@@ -12,12 +12,11 @@ namespace gko {
    A Timeline is the top level structure for content.
 */
 struct Timeline {
-  // TODO
-  // Layer* rendered_timeline;
-
+  Layer* rendered_timeline = nullptr;
+  TimelinePosition render_head;
   std::vector<Layer*> layers;
 
-  inline float read(TimelinePosition position, Layer* recording, RecordParams record_params) {
+  inline float readLayers(TimelinePosition position) {
     float signal_out = 0.f;
     for (unsigned int i = 0; i < layers.size(); i++) {
       if (layers[i]->readableAtPosition(position)) {
@@ -26,6 +25,29 @@ struct Timeline {
     }
 
     return signal_out;
+  }
+
+
+  inline void renderUpTo(TimelinePosition position) {
+    assert(render_head.before(position));
+
+    while(render_head.before(position)) {
+      bool reached_render_end = rendered_timeline->n_beats <= render_head.beat;
+      if (reached_render_end) {
+        rendered_timeline->n_beats++;
+        rendered_timeline->resizeToLength();
+      }
+
+      rendered_timeline->writeSignal(render_head, readLayers(render_head));
+
+      render_head.phase += 1.0f / rendered_timeline->samples_per_beat;
+      if (1.0f < render_head.phase) {
+        render_head.phase -= 1.0f;
+        render_head.beat++;
+      }
+    }
+
+    render_head = position;
   }
 
   inline std::vector<Layer*> getLayersFromIdx(std::vector<unsigned int> layer_idx) {

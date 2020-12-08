@@ -35,4 +35,5 @@ struct RecordParams {
 struct Options {
   bool use_antipop = false;
   float antipop_threshold = 0.5f;
+  bool eco_mode = true;
 };

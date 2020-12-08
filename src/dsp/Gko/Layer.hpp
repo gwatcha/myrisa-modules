@@ -28,15 +28,17 @@ struct Layer {
   // unsigned int fully_attenuated_beat = 0;
 
   int samples_per_beat = 0;
+  float sample_time = 0;
 
   TimelinePosition last_content_position;
   TimelinePosition fully_attenuated_position;
 
   // TODO optinoal samples_per_beat?
-  inline Layer(unsigned int start_beat, unsigned int n_beats, std::vector<unsigned int> target_layers_idx) {
+  inline Layer(unsigned int start_beat, unsigned int n_beats, std::vector<unsigned int> target_layers_idx, float sample_time) {
     this->start_beat = start_beat;
     this->n_beats = n_beats;
     this->target_layers_idx = target_layers_idx;
+    this->sample_time = sample_time;
 
     fully_attenuated_position.beat = std::numeric_limits<unsigned int>::max();
     in = new Recording(Recording::Type::AUDIO);
@@ -127,12 +129,17 @@ struct Layer {
     return recording_strength->read(positionToRecordingPhase(position));
   }
 
-  inline void write(TimelinePosition position, float signal_sample, float recording_strength_sample) {
+  inline void writeSignal(TimelinePosition position, float signal_sample) {
     assert(writableAtPosition(position));
     assert(0 != in->size());
-    assert(0 != recording_strength->size());
 
     in->write(positionToRecordingPhase(position), signal_sample);
+  }
+
+  inline void writeRecordingStrength(TimelinePosition position, float recording_strength_sample) {
+    assert(writableAtPosition(position));
+    assert(0 != recording_strength->size());
+
     recording_strength->write(positionToRecordingPhase(position), recording_strength_sample);
   }
 };
