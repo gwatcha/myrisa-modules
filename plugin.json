@@ -46,7 +46,7 @@
     {
       "slug": "Myrisa-Gko",
       "name": "Gko",
-      "description": "Record, loop, edit, playback, and sequence signals. Designed for adding structure to patches, live loop recording, and more. Inspired by the advancer of existence, 'Gko'.",
+      "description": "Multi-layered generic signal recorder with looping functionality and timeline. Designed for adding structure to patches.",
       "tags": [
         "Poly",
         "Recording",
