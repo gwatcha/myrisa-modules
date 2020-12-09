@@ -62,9 +62,6 @@ inline void Engine::beginRecording() {
   assert(_record_params.active());
   assert(_recording_layer == nullptr);
 
-  if (_timeline.rendered_timeline == nullptr) {
-    _timeline.rendered_timeline = new Layer(0, 1, std::vector<unsigned int>(), _sample_time);
-  }
 
   unsigned int n_beats = 1;
   if (_record_params.mode == RecordParams::Mode::DUB && 0 < _selected_layers_idx.size()) {
@@ -94,6 +91,12 @@ inline void Engine::beginRecording() {
       _recording_layer->samples_per_beat = floor(beat_period / _sample_time);
     }
     _recording_layer->resizeToLength();
+  }
+
+  if (_timeline.rendered_timeline == nullptr) {
+    _timeline.rendered_timeline = new Layer(0, _recording_layer->start_beat + 1, std::vector<unsigned int>(), _sample_time);
+    _timeline.rendered_timeline->samples_per_beat = _recording_layer->samples_per_beat;
+    _timeline.rendered_timeline->resizeToLength();
   }
 
   if (_record_params.time_frame != TimeFrame::TIMELINE) {

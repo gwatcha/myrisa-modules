@@ -41,7 +41,7 @@ struct Timeline {
       rendered_timeline->writeSignal(render_head, readLayers(render_head));
 
       render_head.phase += 1.0f / rendered_timeline->samples_per_beat;
-      if (1.0f < render_head.phase) {
+      if (1.0f <= render_head.phase) {
         render_head.phase -= 1.0f;
         render_head.beat++;
       }
